@@ -1,0 +1,19 @@
+node_modules
+dist
+dist-ssr
+*.local
+coverage
+
+# Personal financial data - never commit, see config.example.json for a template
+server/data/config.json
+server/data/config.json.tmp
+
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

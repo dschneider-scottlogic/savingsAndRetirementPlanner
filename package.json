@@ -1,0 +1,16 @@
+{
+  "name": "savings-and-retirement-planner",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Sparziele & Rente Tracker - personal savings goal and retirement projection app",
+  "scripts": {
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm run dev",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "test": "cd client && npm test"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
