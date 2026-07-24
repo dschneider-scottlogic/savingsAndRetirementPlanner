@@ -101,7 +101,7 @@ export default function App() {
         </div>
       )}
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">Sparziele &amp; Rente Tracker</h1>
+        <h1 className="text-xl font-semibold text-gray-900">Savings &amp; Retirement Tracker</h1>
         <SaveIndicator status={saveStatus} />
       </header>
       <Nav pages={PAGES} current={page} onSelect={setPage} />

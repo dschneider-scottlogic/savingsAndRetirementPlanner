@@ -1,7 +1,7 @@
 {
   "name": "savings-and-retirement-planner-server",
   "version": "1.0.0",
-  "description": "Backend for the Sparziele & Rente tracker: serves and persists config.json",
+  "description": "Backend for the Savings & Retirement Tracker: serves and persists config.json",
   "type": "module",
   "main": "src/index.js",
   "scripts": {

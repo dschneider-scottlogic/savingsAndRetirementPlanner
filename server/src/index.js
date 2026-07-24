@@ -70,6 +70,6 @@ app.put('/api/config', async (req, res) => {
 const PORT = process.env.PORT || 3001;
 ensureConfigExists().then(() => {
   app.listen(PORT, () => {
-    console.log(`Sparziele & Rente server listening on http://localhost:${PORT}`);
+    console.log(`Savings & Retirement Tracker server listening on http://localhost:${PORT}`);
   });
 });

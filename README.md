@@ -1,4 +1,4 @@
-# Sparziele & Rente Tracker
+# Savings & Retirement Tracker
 
 Personal savings goal / retirement projection / drawdown simulator app.
 
