@@ -11,6 +11,7 @@ function newAccount() {
 
 export default function SavingsGoal({ config, onChange }) {
   const includedPotIds = config.savingsGoal.includedPotIds ?? [];
+  const potNotes = config.savingsGoal.potNotes ?? {};
 
   const extraMonthlyContributions = useMemo(
     () =>
@@ -57,6 +58,10 @@ export default function SavingsGoal({ config, onChange }) {
       ? includedPotIds.filter((p) => p !== id)
       : [...includedPotIds, id];
     onChange({ ...config, savingsGoal: { ...config.savingsGoal, includedPotIds: next } });
+  }
+
+  function updatePotNote(id, note) {
+    onChange({ ...config, savingsGoal: { ...config.savingsGoal, potNotes: { ...potNotes, [id]: note } } });
   }
 
   return (
@@ -166,14 +171,22 @@ export default function SavingsGoal({ config, onChange }) {
                   + also count existing pot contributions (already committed elsewhere, so they add
                   to your total):
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-2">
                   {config.retirementPots.map((pot) => (
-                    <ToggleField
-                      key={pot.id}
-                      label={`${pot.name} (${formatCurrency(pot.monthlyContribution, pot.currency ?? 'EUR')}/mo)`}
-                      checked={includedPotIds.includes(pot.id)}
-                      onChange={() => togglePotIncluded(pot.id)}
-                    />
+                    <div key={pot.id}>
+                      <ToggleField
+                        label={`${pot.name} (${formatCurrency(pot.monthlyContribution, pot.currency ?? 'EUR')}/mo)`}
+                        checked={includedPotIds.includes(pot.id)}
+                        onChange={() => togglePotIncluded(pot.id)}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Why included / excluded (optional)"
+                        className="mt-1 ml-6 w-[calc(100%-1.5rem)] rounded border border-gray-200 px-2 py-1 text-xs text-gray-500 placeholder:text-gray-400"
+                        value={potNotes[pot.id] ?? ''}
+                        onChange={(e) => updatePotNote(pot.id, e.target.value)}
+                      />
+                    </div>
                   ))}
                 </div>
 
