@@ -1,7 +1,6 @@
 # Sparziele & Rente Tracker
 
 Personal savings goal / retirement projection / drawdown simulator app.
-See `sparziele-rente-app-concept.md` for the original concept this was built from.
 
 ## Structure
 
@@ -11,6 +10,10 @@ See `sparziele-rente-app-concept.md` for the original concept this was built fro
   source of truth for all financial math (compound interest projections,
   savings goal shortfall, drawdown simulation); the server imports it too so
   logic never diverges between validation and the UI.
+- `client/src/persistence/` — swappable persistence layer: `apiPersistence.js`
+  (talks to the Express backend, used locally) or `localStoragePersistence.js`
+  (browser-only, used by the public GitHub Pages demo — see "Deployment" below).
+  `persistence/index.js` picks one at build time via `VITE_PERSISTENCE`.
 - `server/data/config.json` — all persisted values (age, FX rates, retirement
   pots, savings accounts, savings goal, drawdown assumptions). Human-readable,
   hand-editable, but **contains real personal financial data** — it's
@@ -62,3 +65,20 @@ conversion (including GBP-denominated goals and past-due targets), and
 drawdown depletion. UI components aren't unit-tested; this is a deliberate
 scope choice for a single-user personal tool — the calculation engine is
 where correctness actually matters, and it's covered.
+
+## Deployment (public GitHub Pages demo)
+
+`.github/workflows/deploy-pages.yml` builds `client/` and publishes it to
+GitHub Pages on every push to `main` that touches `client/`. The Pages build
+sets two env vars that don't apply to local/self-hosted use:
+
+- `VITE_PERSISTENCE=local-storage` — switches persistence to the browser's
+  localStorage instead of the Express API, since Pages can't run a backend.
+  The app shows an amber "Demo mode" banner whenever this is active, and
+  seeds first-time visitors from the same placeholder data as
+  `config.example.json`. Nothing is ever sent to a server in this mode.
+- `VITE_BASE_PATH=/<repo-name>/` — matches the subpath GitHub Pages serves a
+  project site from.
+
+One-time manual setup (can't be done via a git push): in the repo's
+**Settings → Pages**, set **Source** to **GitHub Actions**.

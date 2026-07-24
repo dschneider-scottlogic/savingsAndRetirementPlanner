@@ -1,3 +1,8 @@
+// Talks to the Express backend (server/src/index.js), which persists to
+// server/data/config.json. Used whenever the app is running against a real
+// backend - local dev, or a self-hosted deployment. Not used in the
+// GitHub Pages build, which has no backend to talk to (see localStoragePersistence.js).
+
 export async function fetchConfig() {
   const res = await fetch('/api/config');
   if (!res.ok) throw new Error(`Failed to load config: ${res.status}`);

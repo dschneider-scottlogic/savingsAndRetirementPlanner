@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { fetchConfig, saveConfig } from './api.js';
+import { fetchConfig, saveConfig, isDemoMode } from './persistence/index.js';
 import Nav from './components/Nav.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import RetirementPots from './components/RetirementPots.jsx';
@@ -61,7 +61,8 @@ export default function App() {
   if (loadError) {
     return (
       <div className="p-8 text-red-600">
-        Failed to load config from the server: {loadError}. Is the backend running on port 3001?
+        Failed to load your data: {loadError}
+        {!isDemoMode && ' Is the backend running on port 3001?'}
       </div>
     );
   }
@@ -72,6 +73,13 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {isDemoMode && (
+        <div className="bg-amber-50 border-b border-amber-200 px-6 py-2 text-sm text-amber-800 text-center">
+          Demo mode: your numbers are stored only in this browser (localStorage) — nothing is sent to a
+          server, and clearing your browser data or switching browsers/devices resets it. Not financial
+          advice; verify the maths yourself before relying on it.
+        </div>
+      )}
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <h1 className="text-xl font-semibold text-gray-900">Sparziele &amp; Rente Tracker</h1>
         <SaveIndicator status={saveStatus} />
