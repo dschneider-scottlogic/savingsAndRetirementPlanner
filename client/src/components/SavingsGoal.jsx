@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { computeSavingsGoal, toCurrency } from '../calculations.js';
 import { formatCurrency, formatPercent } from '../format.js';
+import { SUPPORTED_CURRENCIES } from '../currencies.js';
 import Section from './Section.jsx';
 import ProgressBar from './ProgressBar.jsx';
 import ToggleField from './fields/ToggleField.jsx';
@@ -127,8 +128,11 @@ export default function SavingsGoal({ config, onChange }) {
                 value={acc.currency}
                 onChange={(e) => updateAccount(acc.id, { currency: e.target.value })}
               >
-                <option value="EUR">EUR</option>
-                <option value="GBP">GBP</option>
+                {SUPPORTED_CURRENCIES.map((currency) => (
+                  <option key={currency} value={currency}>
+                    {currency}
+                  </option>
+                ))}
               </select>
               <button onClick={() => removeAccount(acc.id)} className="text-gray-400 hover:text-red-600">
                 ✕

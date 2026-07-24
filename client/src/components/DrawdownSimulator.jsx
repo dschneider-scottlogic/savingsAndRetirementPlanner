@@ -5,19 +5,17 @@ import { formatCurrency } from '../format.js';
 import Section from './Section.jsx';
 import SliderField from './fields/SliderField.jsx';
 
-function defaultSimulatorState(config) {
-  return {
-    potChoice: 'full',
-    annualWithdrawal: config.drawdown.annualAmounts[0] ?? 40000,
-    annualInterestRate: config.drawdown.assumedInterestRate,
-    maxDurationYears: config.drawdown.durationsYears[config.drawdown.durationsYears.length - 1] ?? 40,
-  };
-}
+const DEFAULT_SIMULATOR_STATE = {
+  potChoice: 'full',
+  annualWithdrawal: 40000,
+  annualInterestRate: 0.03,
+  maxDurationYears: 40,
+};
 
 export default function DrawdownSimulator({ config, onChange }) {
   const { totalFull, totalLimited } = useMemo(() => computePots(config), [config]);
 
-  const simulator = { ...defaultSimulatorState(config), ...config.drawdown.simulator };
+  const simulator = { ...DEFAULT_SIMULATOR_STATE, ...config.drawdown.simulator };
   const { potChoice, annualWithdrawal, annualInterestRate, maxDurationYears } = simulator;
 
   function updateSimulator(patch) {

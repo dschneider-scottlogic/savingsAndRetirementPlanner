@@ -22,6 +22,9 @@ Personal savings goal / retirement projection / drawdown simulator app.
   values, safe to commit. The server auto-copies this to `config.json` on
   first run if `config.json` doesn't exist yet, so a fresh clone works
   immediately without a manual setup step.
+- `client/src/currencies.js` / `client/src/fx.js` — the list of currencies
+  offered in the pot/account dropdowns, and a client-side fetch of live
+  exchange rates (no backend involved — see "Exchange rates" below).
 
 ## Running it
 
@@ -42,14 +45,31 @@ edit the seeded values from the app itself.
 2. **Retirement Pots** — inline-editable table of pots with live-recalculated
    projections and combined totals.
 3. **Savings Goal** — target/accounts editor, shortfall, required monthly
-   savings rate (EUR/GBP), with a "redirect an existing contribution" toggle.
+   savings rate (EUR/GBP), with a "redirect an existing contribution" toggle
+   and a per-pot note for why it was or wasn't counted in.
 4. **Drawdown Simulator** — sliders for withdrawal amount, retirement interest
    rate, and simulation length, with a live balance-over-time chart.
-5. **Settings** — the rarely-changed inputs: age, retirement age, FX rates,
-   and drawdown defaults.
+5. **Settings** — the rarely-changed inputs: age, retirement age, and
+   exchange rates (see below).
 
 Edits debounce-save to `config.json` automatically; the header shows
 Saving.../Saved status.
+
+## Exchange rates
+
+Pot and account currencies aren't limited to EUR/GBP — `client/src/currencies.js`
+lists everything the dropdowns offer. Conversions all go through `config.fx`,
+a single EUR-based rate table (`{ base: 'EUR', rates: { GBP: 0.87, USD: 1.08, ... } }`)
+rather than one hardcoded multiplier per currency pair, so adding a currency
+to the list is enough to make it usable everywhere.
+
+On every app load, the client fetches current rates straight from
+[Frankfurter](https://frankfurter.dev) (no API key, ECB-sourced, CORS-enabled
+— works the same whether there's a backend or not) and saves them into
+`config.fx`. If that fetch fails (offline, service down), the existing rates
+just keep being used — nothing bad happens, no error is shown. Settings also
+lets you hand-edit any rate, e.g. for a one-off correction; a later live
+refresh will overwrite it for currencies the feed covers.
 
 ## Tests
 

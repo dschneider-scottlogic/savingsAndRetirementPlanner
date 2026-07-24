@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchConfig, saveConfig, isDemoMode } from './persistence/index.js';
+import { fetchLiveRates } from './fx.js';
 import Nav from './components/Nav.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import RetirementPots from './components/RetirementPots.jsx';
@@ -23,6 +24,25 @@ export default function App() {
       .then(setConfig)
       .catch((err) => setLoadError(err.message));
   }, []);
+
+  // Best-effort background refresh of exchange rates once per load - on
+  // failure (offline, rate service down) the existing rates in config just
+  // keep being used, so there's no user-visible error path here.
+  const hasRefreshedRates = useRef(false);
+  useEffect(() => {
+    if (!config || hasRefreshedRates.current) return;
+    hasRefreshedRates.current = true;
+    fetchLiveRates()
+      .then((live) => {
+        setConfig((current) => {
+          if (!current) return current;
+          const next = { ...current, fx: { ...current.fx, ...live, rates: { ...current.fx.rates, ...live.rates } } };
+          saveConfig(next).catch(() => {});
+          return next;
+        });
+      })
+      .catch(() => {});
+  }, [config]);
 
   // A debounced save waiting out its timer is invisible to a page
   // refresh/close — the timeout is destroyed with the page before it ever

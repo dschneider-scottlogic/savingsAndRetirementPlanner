@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import { computePots, computePotsGrowth, computePotsGrowthByPot } from '../calculations.js';
 import { formatCurrency } from '../format.js';
+import { SUPPORTED_CURRENCIES } from '../currencies.js';
 import Section from './Section.jsx';
 
 const POT_COLORS = ['#4f46e5', '#f59e0b', '#10b981', '#ef4444', '#0ea5e9', '#8b5cf6', '#ec4899', '#84cc16'];
@@ -105,8 +106,11 @@ export default function RetirementPots({ config, onChange }) {
                     value={pot.currency ?? 'EUR'}
                     onChange={(e) => updatePot(pot.id, { currency: e.target.value })}
                   >
-                    <option value="EUR">EUR</option>
-                    <option value="GBP">GBP</option>
+                    {SUPPORTED_CURRENCIES.map((currency) => (
+                      <option key={currency} value={currency}>
+                        {currency}
+                      </option>
+                    ))}
                   </select>
                 </td>
                 <td className="py-2 pr-3">

@@ -17,18 +17,23 @@ function monthsBetween(fromDate, toDate) {
   return Math.max(0, months);
 }
 
+// fx.rates maps a currency code to "units of that currency per 1 fx.base"
+// (the shape returned by the live rate feed, see fx.js), so any pair of
+// currencies present in the table can be converted via the base currency -
+// no need to enumerate every pair by hand as more currencies are added.
 export function toCurrency(amount, fromCurrency, toCurrency_, fx) {
   if (fromCurrency === toCurrency_) return amount;
-  if (fromCurrency === 'GBP' && toCurrency_ === 'EUR') return amount * fx.gbpToEur;
-  if (fromCurrency === 'EUR' && toCurrency_ === 'GBP') return amount * fx.eurToGbp;
-  return amount;
+  const fromRate = fx.rates[fromCurrency];
+  const toRate = fx.rates[toCurrency_];
+  if (fromRate == null || toRate == null) return amount;
+  return (amount / fromRate) * toRate;
 }
 
 // Retirement pot totals are always shown in EUR (no per-total currency
 // toggle, unlike the savings goal), so pots are converted to this base
 // before compounding rather than carrying a currency through the math.
 const POT_BASE_CURRENCY = 'EUR';
-const IDENTITY_FX = { gbpToEur: 1, eurToGbp: 1 };
+const IDENTITY_FX = { base: POT_BASE_CURRENCY, rates: { [POT_BASE_CURRENCY]: 1 } };
 
 /** Months remaining until the person reaches targetRetirementAge, from "now". */
 export function monthsToRetirement(personal, now = new Date()) {

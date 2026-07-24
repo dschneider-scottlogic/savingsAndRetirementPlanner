@@ -1,33 +1,29 @@
+import { useState } from 'react';
 import Section from './Section.jsx';
 import NumberField from './fields/NumberField.jsx';
+import { fetchLiveRates } from '../fx.js';
+import { SUPPORTED_CURRENCIES } from '../currencies.js';
 
 export default function Settings({ config, onChange }) {
+  const [refreshState, setRefreshState] = useState('idle'); // idle | refreshing | error
+
   function updatePersonal(patch) {
     onChange({ ...config, personal: { ...config.personal, ...patch } });
   }
 
-  function updateFx(patch) {
-    onChange({ ...config, fx: { ...config.fx, ...patch } });
+  function updateRate(currency, rate) {
+    onChange({ ...config, fx: { ...config.fx, rates: { ...config.fx.rates, [currency]: rate } } });
   }
 
-  function updateDrawdown(patch) {
-    onChange({ ...config, drawdown: { ...config.drawdown, ...patch } });
-  }
-
-  function updateDurationsList(text) {
-    const values = text
-      .split(',')
-      .map((v) => Number(v.trim()))
-      .filter((v) => !Number.isNaN(v));
-    updateDrawdown({ durationsYears: values });
-  }
-
-  function updateAmountsList(text) {
-    const values = text
-      .split(',')
-      .map((v) => Number(v.trim()))
-      .filter((v) => !Number.isNaN(v));
-    updateDrawdown({ annualAmounts: values });
+  async function refreshRates() {
+    setRefreshState('refreshing');
+    try {
+      const live = await fetchLiveRates();
+      onChange({ ...config, fx: { ...config.fx, ...live, rates: { ...config.fx.rates, ...live.rates } } });
+      setRefreshState('idle');
+    } catch {
+      setRefreshState('error');
+    }
   }
 
   return (
@@ -49,49 +45,30 @@ export default function Settings({ config, onChange }) {
         </div>
       </Section>
 
-      <Section title="Exchange rates">
-        <div className="grid sm:grid-cols-2 gap-4">
-          <NumberField
-            label="GBP → EUR"
-            value={config.fx.gbpToEur}
-            step="0.01"
-            onChange={(v) => updateFx({ gbpToEur: v })}
-          />
-          <NumberField
-            label="EUR → GBP"
-            value={config.fx.eurToGbp}
-            step="0.01"
-            onChange={(v) => updateFx({ eurToGbp: v })}
-          />
-        </div>
-      </Section>
-
-      <Section title="Drawdown defaults">
-        <div className="grid sm:grid-cols-1 gap-4">
-          <NumberField
-            label="Assumed interest rate during retirement"
-            value={config.drawdown.assumedInterestRate}
-            step="0.005"
-            onChange={(v) => updateDrawdown({ assumedInterestRate: v })}
-          />
-          <label className="block">
-            <span className="block text-sm text-gray-600 mb-1">Durations to compare (years, comma-separated)</span>
-            <input
-              className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-              defaultValue={config.drawdown.durationsYears.join(', ')}
-              onBlur={(e) => updateDurationsList(e.target.value)}
+      <Section
+        title="Exchange rates"
+        actions={
+          <button onClick={refreshRates} disabled={refreshState === 'refreshing'} className="text-sm text-indigo-600 hover:underline disabled:opacity-50">
+            {refreshState === 'refreshing' ? 'Refreshing…' : 'Refresh from live rates'}
+          </button>
+        }
+      >
+        <p className="text-xs text-gray-400 mb-3">
+          Units of each currency per 1 EUR. {config.fx.updatedAt
+            ? `Last refreshed ${new Date(config.fx.updatedAt).toLocaleString()}.`
+            : 'Never refreshed from a live source yet.'}{' '}
+          {refreshState === 'error' && <span className="text-red-500">Refresh failed - keeping existing rates.</span>}
+        </p>
+        <div className="grid sm:grid-cols-3 gap-4">
+          {SUPPORTED_CURRENCIES.filter((c) => c !== config.fx.base).map((currency) => (
+            <NumberField
+              key={currency}
+              label={`EUR → ${currency}`}
+              value={config.fx.rates[currency] ?? ''}
+              step="0.01"
+              onChange={(v) => updateRate(currency, v)}
             />
-          </label>
-          <label className="block">
-            <span className="block text-sm text-gray-600 mb-1">
-              Annual withdrawal amounts to compare (comma-separated)
-            </span>
-            <input
-              className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-              defaultValue={config.drawdown.annualAmounts.join(', ')}
-              onBlur={(e) => updateAmountsList(e.target.value)}
-            />
-          </label>
+          ))}
         </div>
       </Section>
 

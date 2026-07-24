@@ -12,21 +12,26 @@ import {
 } from './calculations.js';
 
 describe('toCurrency', () => {
-  const fx = { gbpToEur: 1.15, eurToGbp: 0.87 };
+  const fx = { base: 'EUR', rates: { EUR: 1, GBP: 0.87 } };
 
   it('returns the amount unchanged when currencies match', () => {
     expect(toCurrency(100, 'EUR', 'EUR', fx)).toBe(100);
-  });
-
-  it('converts GBP to EUR', () => {
-    expect(toCurrency(100, 'GBP', 'EUR', fx)).toBeCloseTo(115, 6);
   });
 
   it('converts EUR to GBP', () => {
     expect(toCurrency(100, 'EUR', 'GBP', fx)).toBeCloseTo(87, 6);
   });
 
-  it('returns the amount unchanged for an unrecognized currency pair', () => {
+  it('converts GBP to EUR', () => {
+    expect(toCurrency(100, 'GBP', 'EUR', fx)).toBeCloseTo(100 / 0.87, 6);
+  });
+
+  it('converts between two non-base currencies via the base', () => {
+    const threeWayFx = { base: 'EUR', rates: { EUR: 1, GBP: 0.87, USD: 1.08 } };
+    expect(toCurrency(100, 'GBP', 'USD', threeWayFx)).toBeCloseTo((100 / 0.87) * 1.08, 6);
+  });
+
+  it('returns the amount unchanged for a currency missing from the rates table', () => {
     expect(toCurrency(100, 'USD', 'EUR', fx)).toBe(100);
   });
 });
@@ -70,7 +75,7 @@ describe('projectPot', () => {
 
   it('treats a pot with no currency as already in EUR (no conversion)', () => {
     const pot = { annualInterestRate: 0, monthlyContribution: 100, startBalance: 1000, contributionLimitYears: null };
-    const fx = { gbpToEur: 1.15, eurToGbp: 0.87 };
+    const fx = { base: 'EUR', rates: { EUR: 1, GBP: 0.87 } };
     const projected = projectPot(pot, 12, fx);
     expect(projected.projectedFull).toBeCloseTo(1000 + 100 * 12, 6);
   });
@@ -83,9 +88,9 @@ describe('projectPot', () => {
       contributionLimitYears: null,
       currency: 'GBP',
     };
-    const fx = { gbpToEur: 1.15, eurToGbp: 0.87 };
+    const fx = { base: 'EUR', rates: { EUR: 1, GBP: 0.87 } };
     const projected = projectPot(pot, 12, fx);
-    expect(projected.projectedFull).toBeCloseTo(1000 * 1.15 + 100 * 1.15 * 12, 6);
+    expect(projected.projectedFull).toBeCloseTo((1000 + 100 * 12) / 0.87, 6);
   });
 
   it('matches full projection when the contribution limit exceeds the horizon', () => {
@@ -115,7 +120,7 @@ describe('computePots', () => {
   it('converts GBP pots to EUR before summing with EUR pots', () => {
     const config = {
       personal: { currentAge: 30, targetRetirementAge: 32 },
-      fx: { gbpToEur: 1.15, eurToGbp: 0.87 },
+      fx: { base: 'EUR', rates: { EUR: 1, GBP: 0.87 } },
       retirementPots: [
         { id: 'eur', annualInterestRate: 0, monthlyContribution: 0, startBalance: 1000, contributionLimitYears: null, currency: 'EUR' },
         { id: 'gbp', annualInterestRate: 0, monthlyContribution: 0, startBalance: 1000, contributionLimitYears: null, currency: 'GBP' },
@@ -123,7 +128,7 @@ describe('computePots', () => {
     };
     const now = new Date(2024, 0, 1);
     const { totalFull } = computePots(config, now);
-    expect(totalFull).toBeCloseTo(1000 + 1000 * 1.15, 6);
+    expect(totalFull).toBeCloseTo(1000 + 1000 / 0.87, 6);
   });
 });
 
@@ -181,6 +186,8 @@ describe('computePotsGrowthByPot', () => {
 });
 
 describe('computeSavingsGoal', () => {
+  const fx = { base: 'EUR', rates: { EUR: 1, GBP: 0.87 } };
+
   it('converts account balances to the goal currency and computes shortfall', () => {
     const config = {
       savingsGoal: { targetAmount: 10000, targetDate: '2025-01-01', currency: 'EUR' },
@@ -188,20 +195,21 @@ describe('computeSavingsGoal', () => {
         { balance: 1000, currency: 'EUR' },
         { balance: 1000, currency: 'GBP' },
       ],
-      fx: { gbpToEur: 1.15, eurToGbp: 0.87 },
+      fx,
     };
     const now = new Date(2024, 0, 1);
     const result = computeSavingsGoal(config, now);
-    expect(result.totalSaved).toBeCloseTo(1000 + 1150, 6);
+    const gbpInEur = 1000 / 0.87;
+    expect(result.totalSaved).toBeCloseTo(1000 + gbpInEur, 6);
     expect(result.monthsRemaining).toBe(12);
-    expect(result.shortfall).toBeCloseTo(10000 - 2150, 6);
+    expect(result.shortfall).toBeCloseTo(10000 - (1000 + gbpInEur), 6);
   });
 
   it('increases the required monthly amount by extra existing contributions', () => {
     const config = {
       savingsGoal: { targetAmount: 10000, targetDate: '2025-01-01', currency: 'EUR' },
       savingsAccounts: [{ balance: 0, currency: 'EUR' }],
-      fx: { gbpToEur: 1.15, eurToGbp: 0.87 },
+      fx,
     };
     const now = new Date(2024, 0, 1);
     const withoutExtra = computeSavingsGoal(config, now, 0);
@@ -213,7 +221,7 @@ describe('computeSavingsGoal', () => {
     const config = {
       savingsGoal: { targetAmount: 10000, targetDate: '2020-01-01', currency: 'EUR' },
       savingsAccounts: [{ balance: 4000, currency: 'EUR' }],
-      fx: { gbpToEur: 1.15, eurToGbp: 0.87 },
+      fx,
     };
     const now = new Date(2024, 0, 1);
     const result = computeSavingsGoal(config, now);
@@ -225,19 +233,19 @@ describe('computeSavingsGoal', () => {
     const config = {
       savingsGoal: { targetAmount: 10000, targetDate: '2025-01-01', currency: 'GBP' },
       savingsAccounts: [{ balance: 0, currency: 'GBP' }],
-      fx: { gbpToEur: 1.15, eurToGbp: 0.87 },
+      fx,
     };
     const now = new Date(2024, 0, 1);
     const result = computeSavingsGoal(config, now);
     expect(result.requiredPerMonthGBP).toBeCloseTo(result.requiredPerMonth, 6);
-    expect(result.requiredPerMonthEUR).toBeCloseTo(result.requiredPerMonth * 1.15, 6);
+    expect(result.requiredPerMonthEUR).toBeCloseTo(result.requiredPerMonth / 0.87, 6);
   });
 
   it('reports 0% complete when the target amount is 0', () => {
     const config = {
       savingsGoal: { targetAmount: 0, targetDate: '2025-01-01', currency: 'EUR' },
       savingsAccounts: [{ balance: 500, currency: 'EUR' }],
-      fx: { gbpToEur: 1.15, eurToGbp: 0.87 },
+      fx,
     };
     const result = computeSavingsGoal(config, new Date(2024, 0, 1));
     expect(result.percentComplete).toBe(0);
@@ -247,7 +255,7 @@ describe('computeSavingsGoal', () => {
     const config = {
       savingsGoal: { targetAmount: 1000, targetDate: '2025-01-01', currency: 'EUR' },
       savingsAccounts: [{ balance: 5000, currency: 'EUR' }],
-      fx: { gbpToEur: 1.15, eurToGbp: 0.87 },
+      fx,
     };
     const result = computeSavingsGoal(config, new Date(2024, 0, 1));
     expect(result.percentComplete).toBe(100);

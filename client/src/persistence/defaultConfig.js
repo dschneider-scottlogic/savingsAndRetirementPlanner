@@ -9,9 +9,12 @@ export const defaultConfig = {
     currentAge: 30,
     targetRetirementAge: 65,
   },
+  // Refreshed from a live source on first load (see App.jsx/fx.js); these
+  // are just the seed values shown before that first fetch completes.
   fx: {
-    gbpToEur: 1.15,
-    eurToGbp: 0.87,
+    base: 'EUR',
+    rates: { EUR: 1, GBP: 0.87 },
+    updatedAt: null,
   },
   savingsGoal: {
     targetAmount: 20000,
@@ -41,9 +44,6 @@ export const defaultConfig = {
   ],
   savingsAccounts: [{ id: 'example-savings', name: 'Example Savings Account', balance: 1000, currency: 'EUR' }],
   drawdown: {
-    assumedInterestRate: 0.03,
-    durationsYears: [25, 30, 35, 40, 45],
-    annualAmounts: [35000, 40000, 45000, 50000],
     simulator: {
       potChoice: 'full',
       annualWithdrawal: 40000,
