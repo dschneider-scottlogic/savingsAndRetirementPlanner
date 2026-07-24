@@ -14,6 +14,7 @@ import {
 import { computePots, computePotsGrowth, computePotsGrowthByPot } from '../calculations.js';
 import { formatCurrency } from '../format.js';
 import { SUPPORTED_CURRENCIES } from '../currencies.js';
+import NumberInput from './fields/NumberInput.jsx';
 import Section from './Section.jsx';
 
 const POT_COLORS = ['#4f46e5', '#f59e0b', '#10b981', '#ef4444', '#0ea5e9', '#8b5cf6', '#ec4899', '#84cc16'];
@@ -93,11 +94,10 @@ export default function RetirementPots({ config, onChange }) {
                   />
                 </td>
                 <td className="py-2 pr-3">
-                  <input
-                    type="number"
+                  <NumberInput
                     className="w-24 rounded border border-gray-300 px-2 py-1"
                     value={pot.startBalance}
-                    onChange={(e) => updatePot(pot.id, { startBalance: Number(e.target.value) })}
+                    onChange={(v) => updatePot(pot.id, { startBalance: v })}
                   />
                 </td>
                 <td className="py-2 pr-3">
@@ -114,35 +114,31 @@ export default function RetirementPots({ config, onChange }) {
                   </select>
                 </td>
                 <td className="py-2 pr-3">
-                  <input
-                    type="number"
+                  <NumberInput
                     className="w-24 rounded border border-gray-300 px-2 py-1"
                     value={pot.monthlyContribution}
-                    onChange={(e) => updatePot(pot.id, { monthlyContribution: Number(e.target.value) })}
+                    onChange={(v) => updatePot(pot.id, { monthlyContribution: v })}
                   />
                 </td>
                 <td className="py-2 pr-3">
-                  <input
-                    type="number"
+                  <NumberInput
                     step="0.001"
                     className="w-20 rounded border border-gray-300 px-2 py-1"
                     value={pot.annualInterestRate}
-                    onChange={(e) => updatePot(pot.id, { annualInterestRate: Number(e.target.value) })}
+                    onChange={(v) => updatePot(pot.id, { annualInterestRate: v })}
                   />
                 </td>
                 <td className="py-2 pr-3">
-                  <input
-                    type="number"
-                    placeholder="never"
-                    className="w-20 rounded border border-gray-300 px-2 py-1"
-                    value={pot.contributionLimitYears ?? ''}
-                    onChange={(e) =>
-                      updatePot(pot.id, {
-                        contributionLimitYears: e.target.value === '' ? null : Number(e.target.value),
-                      })
-                    }
-                  />
-                  <span className="text-xs text-gray-400 ml-1">yrs</span>
+                  <div className="flex items-center gap-1 whitespace-nowrap">
+                    <NumberInput
+                      placeholder="never"
+                      emptyValue={null}
+                      className="w-16 rounded border border-gray-300 px-2 py-1"
+                      value={pot.contributionLimitYears}
+                      onChange={(v) => updatePot(pot.id, { contributionLimitYears: v })}
+                    />
+                    <span className="text-xs text-gray-400">yrs</span>
+                  </div>
                 </td>
                 <td className="py-2 pr-3 font-medium text-gray-900">{formatCurrency(pot.projectedFull, 'EUR')}</td>
                 <td className="py-2 pr-3 font-medium text-gray-900">{formatCurrency(pot.projectedLimited, 'EUR')}</td>

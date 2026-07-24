@@ -5,6 +5,7 @@ import { SUPPORTED_CURRENCIES } from '../currencies.js';
 import Section from './Section.jsx';
 import ProgressBar from './ProgressBar.jsx';
 import ToggleField from './fields/ToggleField.jsx';
+import NumberInput from './fields/NumberInput.jsx';
 
 function newAccount() {
   return { id: `account-${Date.now()}`, name: 'New account', balance: 0, currency: 'EUR' };
@@ -71,11 +72,10 @@ export default function SavingsGoal({ config, onChange }) {
         <div className="grid sm:grid-cols-3 gap-4">
           <label className="block">
             <span className="block text-sm text-gray-600 mb-1">Target amount</span>
-            <input
-              type="number"
+            <NumberInput
               className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm"
               value={config.savingsGoal.targetAmount}
-              onChange={(e) => updateGoal({ targetAmount: Number(e.target.value) })}
+              onChange={(v) => updateGoal({ targetAmount: v })}
             />
           </label>
           <label className="block">
@@ -117,11 +117,10 @@ export default function SavingsGoal({ config, onChange }) {
                 value={acc.name}
                 onChange={(e) => updateAccount(acc.id, { name: e.target.value })}
               />
-              <input
-                type="number"
+              <NumberInput
                 className="w-28 rounded border border-gray-300 px-2 py-1 text-sm"
                 value={acc.balance}
-                onChange={(e) => updateAccount(acc.id, { balance: Number(e.target.value) })}
+                onChange={(v) => updateAccount(acc.id, { balance: v })}
               />
               <select
                 className="rounded border border-gray-300 px-2 py-1 text-sm"
