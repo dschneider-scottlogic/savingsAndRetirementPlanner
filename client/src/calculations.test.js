@@ -9,6 +9,7 @@ import {
   computePotsGrowthByPot,
   computeSavingsGoal,
   simulateDrawdown,
+  sustainablePot,
 } from './calculations.js';
 
 describe('toCurrency', () => {
@@ -273,5 +274,24 @@ describe('simulateDrawdown', () => {
     const { depletionYear, points } = simulateDrawdown(100000, 1000, 0.05, 30);
     expect(depletionYear).toBeNull();
     expect(points.length).toBe(31);
+  });
+});
+
+describe('sustainablePot', () => {
+  it('returns the pot size where annual withdrawal equals interest earned', () => {
+    expect(sustainablePot(4000, 0.04)).toBeCloseTo(100000, 6);
+  });
+
+  it('returns null when the interest rate is zero or negative', () => {
+    expect(sustainablePot(1000, 0)).toBeNull();
+    expect(sustainablePot(1000, -0.02)).toBeNull();
+  });
+
+  it('matches simulateDrawdown: starting exactly at this pot holds the balance steady', () => {
+    const pot = sustainablePot(4000, 0.04);
+    const { points } = simulateDrawdown(pot, 4000, 0.04, 10);
+    for (const point of points) {
+      expect(point.balance).toBeCloseTo(pot, 6);
+    }
   });
 });

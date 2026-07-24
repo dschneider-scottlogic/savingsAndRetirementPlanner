@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { computePots, simulateDrawdown } from '../calculations.js';
+import { computePots, simulateDrawdown, sustainablePot } from '../calculations.js';
 import { formatCurrency } from '../format.js';
 import Section from './Section.jsx';
 import SliderField from './fields/SliderField.jsx';
@@ -31,6 +31,8 @@ export default function DrawdownSimulator({ config, onChange }) {
     () => simulateDrawdown(startingPot, annualWithdrawal, annualInterestRate, maxDurationYears),
     [startingPot, annualWithdrawal, annualInterestRate, maxDurationYears]
   );
+
+  const requiredPot = sustainablePot(annualWithdrawal, annualInterestRate);
 
   return (
     <div>
@@ -91,6 +93,24 @@ export default function DrawdownSimulator({ config, onChange }) {
             )}
             <div className="text-sm text-gray-500 mt-1">
               Ending balance: {formatCurrency(points[points.length - 1].balance)}
+            </div>
+
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <div className="text-xs uppercase text-gray-500 mb-1">Pot needed to not lose value</div>
+              {requiredPot != null ? (
+                <>
+                  <div className="text-base font-semibold text-gray-900">{formatCurrency(requiredPot)}</div>
+                  <div className={`text-sm mt-0.5 ${startingPot >= requiredPot ? 'text-green-600' : 'text-red-600'}`}>
+                    {startingPot >= requiredPot
+                      ? `${formatCurrency(startingPot - requiredPot)} above this - the pot should keep growing`
+                      : `${formatCurrency(requiredPot - startingPot)} short of this - the pot will shrink`}
+                  </div>
+                </>
+              ) : (
+                <div className="text-sm text-gray-500">
+                  Not possible at a 0% (or negative) interest rate - any withdrawal shrinks the pot.
+                </div>
+              )}
             </div>
           </div>
         </div>

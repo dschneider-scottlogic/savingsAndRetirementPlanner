@@ -167,6 +167,18 @@ export function computeSavingsGoal(config, now = new Date(), extraMonthlyContrib
 }
 
 /**
+ * The pot size at which `annualWithdrawal` exactly equals the interest
+ * earned each year (same annual compounding model as simulateDrawdown), so
+ * the balance holds steady forever instead of shrinking or growing. Null
+ * when the rate isn't positive - at 0% or negative growth, any withdrawal
+ * erodes the pot regardless of its size, so no such pot exists.
+ */
+export function sustainablePot(annualWithdrawal, annualInterestRate) {
+  if (annualInterestRate <= 0) return null;
+  return annualWithdrawal / annualInterestRate;
+}
+
+/**
  * Year-by-year drawdown simulation starting from `startingPot`, withdrawing
  * `annualWithdrawal` at the end of each year and growing the remainder at
  * `annualInterestRate`. Stops early once the pot is depleted.
